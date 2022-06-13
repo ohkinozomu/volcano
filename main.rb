@@ -1,5 +1,7 @@
+# typed: true
 require "json"
 require "benchmark"
+require 'sorbet-runtime'
 
 class Index
   def initialize
@@ -159,8 +161,8 @@ items_created_at_idx.bulk_load(
 
 Benchmark::bm(40) do |x|
   puts "SELECT * FROM items WHERE buyer_id = 1;"
-  seq_scan = nil
-  index_scan = nil
+  seq_scan = T.let(nil, T.untyped)
+  index_scan = T.let(nil, T.untyped)
   x.report("SeqScan") do
     plan = SeqScan.new(table: items, filter: ->(tuple){tuple[:buyer_id] == 1})
     seq_scan = plan.iter.force
@@ -177,8 +179,8 @@ Benchmark::bm(40) do |x|
   raise unless seq_scan == index_scan
 
   puts "SELECT * FROM items ORDER BY created_at DESC, id DESC;"
-  seq_scan_sort_limit = nil
-  index_scan_limit = nil
+  seq_scan_sort_limit = T.let(nil, T.untyped)
+  index_scan_limit = T.let(nil, T.untyped)
   x.report("SeqScan + Sort + Limit") do
     plan = Limit.new(
       inner: Sort.new(
